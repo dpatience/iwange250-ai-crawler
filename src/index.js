@@ -185,7 +185,7 @@ function formatListings(listings) {
 function getStaticListings() {
   return [
     {
-      id: 'prop-001',
+      id: '41b8ef80-e4da-439f-b8ec-58c9a3ad51e4',
       title: 'Modern 2-Bedroom Apartment in Kigali',
       location: 'Ruhango, Rwanda',
       price: 'RWF 120,000/month',
