@@ -1,0 +1,13 @@
+name = "iwange250-ai-crawler"
+main = "src/index.js"
+compatibility_date = "2026-06-18"
+
+# Route this Worker to your domain
+[[routes]]
+pattern = "iwange250.app/*"
+zone_name = "iwange250.app"
+
+# Optional: KV namespace for dynamic listings
+# [[kv_namespaces]]
+# binding = "LISTINGS_KV"
+# id = "your-kv-namespace-id"
