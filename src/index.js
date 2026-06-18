@@ -1,4 +1,3 @@
-// Known AI crawler user agents
 const AI_CRAWLERS = [
   'GPTBot',
   'ClaudeBot',
@@ -16,7 +15,6 @@ const AI_CRAWLERS = [
   'CCBot',
   'Diffbot',
   'cohere-ai',
-  'Perplexity-User',
 ];
 
 function isAICrawler(userAgent) {
@@ -29,16 +27,17 @@ export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
     const userAgent = request.headers.get('User-Agent') || '';
+    const isAI = isAICrawler(userAgent);
 
-    // If AI crawler and not already on /listings, redirect them
-    if (isAICrawler(userAgent) && url.pathname !== '/listings') {
+    // AI crawlers visiting root -> send to /listings
+    if (isAI && url.pathname === '/') {
       return Response.redirect(`${url.origin}/listings`, 302);
     }
 
-    // If request is for /listings, serve the AI-readable listings.txt content
-    if (url.pathname === '/listings') {
-      const listingsContent = await getListingsContent(env);
-      return new Response(listingsContent, {
+    // AI crawlers visiting /listings -> serve the structured text
+    if (isAI && url.pathname === '/listings') {
+      const content = await getListingsContent(env);
+      return new Response(content, {
         headers: {
           'Content-Type': 'text/plain; charset=utf-8',
           'Cache-Control': 'public, max-age=300',
@@ -46,17 +45,19 @@ export default {
       });
     }
 
-    // All other traffic (humans, non-AI crawlers) passes through to origin
+    // Humans visiting /listings -> redirect back to home
+    if (!isAI && url.pathname === '/listings') {
+      return Response.redirect(`${url.origin}/`, 302);
+    }
+
+    // Everything else passes through to origin normally
     return fetch(request);
   },
 };
 
-// You can hardcode, fetch from KV, or fetch from your origin here
 async function getListingsContent(env) {
-  // Option A: Hardcoded content (simplest)
   return `# Iwange250 Listings
 # Last updated: 2026-06-18
-# Format: Structured plain text for AI consumption
 
 ## Property Listings
 
@@ -85,11 +86,4 @@ async function getListingsContent(env) {
 
 # End of listings
 `;
-
-  // Option B: Fetch from your origin if you already have an endpoint
-  // const response = await fetch('https://your-origin.com/api/listings-text');
-  // return response.text();
-
-  // Option C: Fetch from Workers KV (recommended for dynamic data)
-  // return env.LISTINGS_KV.get('listings.txt') || '# No listings available';
 }
